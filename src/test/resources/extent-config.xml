@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<extentreports>
+    <configuration>
+        <!-- Report theme: standard, dark -->
+        <theme>standard</theme>
+        
+        <!-- Document title -->
+        <documentTitle>Bookstore API Test Report</documentTitle>
+        
+        <!-- Report name -->
+        <reportName>Bookstore API Automation Test Results</reportName>
+        
+        <!-- Timestamp format -->
+        <timeStampFormat>MMM dd, yyyy HH:mm:ss</timeStampFormat>
+        
+        <!-- Custom JavaScript -->
+        <scripts>
+            <![CDATA[
+                $(document).ready(function() {
+                    $('#nav-dashboard').addClass('active');
+                });
+            ]]>
+        </scripts>
+        
+        <!-- Custom CSS -->
+        <styles>
+            <![CDATA[
+                .brand-logo { 
+                    color: #2196F3; 
+                    font-weight: bold; 
+                }
+                .nav-wrapper { 
+                    background-color: #1976D2; 
+                }
+                .test-item.pass { 
+                    border-left: 4px solid #4CAF50; 
+                }
+                .test-item.fail { 
+                    border-left: 4px solid #F44336; 
+                }
+                .test-item.skip { 
+                    border-left: 4px solid #FF9800; 
+                }
+            ]]>
+        </styles>
+    </configuration>
+</extentreports>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="Bookstore API Test Suite" verbose="1">
+    <parameter name="environment" value="dev"/>
+    
+    <listeners>
+        <listener class-name="com.bookstore.utils.ExtentTestListener"/>
+    </listeners>
+    
+    <test name="Books API Tests" preserve-order="true">
+        <parameter name="apiType" value="books"/>
+        <classes>
+            <class name="com.bookstore.tests.books.BooksGetTests"/>
+            <class name="com.bookstore.tests.books.BooksPostTests"/>
+            <class name="com.bookstore.tests.books.BooksPutTests"/>
+            <class name="com.bookstore.tests.books.BooksDeleteTests"/>
+        </classes>
+    </test>
+      
+    <test name="Authors API Tests" preserve-order="true">
+        <parameter name="apiType" value="authors"/>
+        <classes>
+            <class name="com.bookstore.tests.authors.AuthorsGetTests"/>
+            <class name="com.bookstore.tests.authors.AuthorsPostTests"/>
+            <class name="com.bookstore.tests.authors.AuthorsPutTests"/>
+            <class name="com.bookstore.tests.authors.AuthorsDeleteTests"/>
+        </classes>
+    </test>
+</suite>

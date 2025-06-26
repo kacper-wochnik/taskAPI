@@ -1,0 +1,106 @@
+name: Bookstore API Tests CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run tests daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to run tests against'
+        required: true
+        default: 'prod'
+        type: choice
+        options:
+        - prod
+
+env:
+  JAVA_VERSION: '11'
+  MAVEN_OPTS: '-Xmx1024m'
+
+jobs:
+  api-tests:
+    name: API Automation Tests
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        environment: [dev]
+        # Can add more environments like: [dev, staging, prod]
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Set up JDK ${{ env.JAVA_VERSION }}
+      uses: actions/setup-java@v4
+      with:
+        java-version: ${{ env.JAVA_VERSION }}
+        distribution: 'temurin'
+    - name: Cache Maven dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}        
+        restore-keys: ${{ runner.os }}-m2
+        
+    - name: Create logs directory
+      run: mkdir -p target/logs
+      
+    - name: Verify API connectivity
+      run: |
+        echo "Checking API connectivity..."        
+        curl -f https://fakerestapi.azurewebsites.net/api/v1/Books || echo "API check failed but continuing..."
+        
+    - name: Run API Tests
+      run: |
+        mvn clean test \
+          -Denv=${{ matrix.environment }} \
+          -Dtest.environment=${{ matrix.environment }} \
+          -Dmaven.test.failure.ignore=true
+      working-directory: .
+      
+    - name: Generate ExtentReports
+      if: always()
+      run: |        
+        echo "ExtentReports generated automatically during test execution"
+      working-directory: .
+    - name: Upload Test Results and Reports
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-artifacts-${{ matrix.environment }}        
+        path: |
+          target/surefire-reports/
+          test-output/ExtentReports/
+          target/logs/
+        retention-days: 30
+        
+    - name: Comment PR with Test Results
+      if: github.event_name == 'pull_request' && always()
+      uses: actions/github-script@v6
+      with:
+        script: |          
+          const fs = require('fs');
+          const path = 'target/surefire-reports/';
+          
+          if (fs.existsSync(path)) {
+            const files = fs.readdirSync(path);
+            const xmlFiles = files.filter(file => file.endsWith('.xml'));
+            
+            let comment = '## API Test Results\n\n';
+            comment += `**Environment:** ${{ matrix.environment }}\n`;
+            comment += `**Total Test Files:** ${xmlFiles.length}\n\n`;
+            comment += '[View detailed ExtentReports in artifacts](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})\n\n';
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+          }
